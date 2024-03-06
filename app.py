@@ -1,5 +1,5 @@
 import streamlit as st
-from pathlib import path
+from pathlib import Path
 import google.generativeai as genai
 st.set_page_config(page_title="AIHealthPro Chatbot", page_icon=":robot:")
 st.title("AIHealthPro Chatbot")
