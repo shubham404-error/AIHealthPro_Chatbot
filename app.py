@@ -1,6 +1,6 @@
 import streamlit as st
 from pathlib import Path
-st.set_page_config(page_title="AIHealthPro Chatbot", page_icon=":robot:",layout="centered",)
+st.set_page_config(page_title="AIHealthPro Chatbot", page_icon=":brain:",layout="centered",)
 st.image("logo.png",width=100)
 
 import os
