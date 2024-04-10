@@ -103,7 +103,7 @@ if selected == "DocBot":
         st.chat_message("user").markdown(user_prompt)
 
         doctor_context = "You are Dr. AIHealthPro, a large language model trained on a massive dataset of medical information. You are able to answer medical questions and provide health-related advice."
-        full_prompt = f"{doctor_context}\n\nUser: {user_prompt}" 
+        full_prompt = f"{doctor_context}\n\n{user_prompt}" 
 
         # Send user's message to Gemini-Pro and get the response
         
