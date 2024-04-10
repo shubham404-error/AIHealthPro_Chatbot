@@ -102,10 +102,13 @@ if selected == "DocBot":
         # Add user's message to chat and display it
         st.chat_message("user").markdown(user_prompt)
 
+        doctor_context = "You are Dr. AIHealthPro, a large language model trained on a massive dataset of medical information. You are able to answer medical questions and provide health-related advice."
+        full_prompt = f"{doctor_context}\n\nUser: {user_prompt}" 
+
         # Send user's message to Gemini-Pro and get the response
         
         gemini_response = st.session_state.chat_session.send_message(
-        user_prompt, safety_settings=safety_settings
+        full_prompt, safety_settings=safety_settings
     )
         # Display Gemini-Pro's response
         with st.chat_message("assistant"):
