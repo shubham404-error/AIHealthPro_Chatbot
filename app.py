@@ -1,6 +1,6 @@
 import streamlit as st
 from pathlib import Path
-st.set_page_config(page_title="AIHealthPro Chatbot", page_icon=":robot:")
+st.set_page_config(page_title="AIHealthPro Chatbot", page_icon=":robot:",layout="centered",)
 st.image("logo.png",width=100)
 st.title("AIHealthPro Chatbot")
 st.write("AIHealthPro is a chatbot that can help you with your health questions.")
@@ -22,13 +22,6 @@ def image_to_byte_array(image: Image) -> bytes:
 
 # Load environment variables
 load_dotenv()
-
-# Configure Streamlit page settings
-st.set_page_config(
-    page_title="AIHealthPro-Chatbot",
-    page_icon=":brain:",  # Favicon emoji
-    layout="centered",  # Page layout option
-)
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
