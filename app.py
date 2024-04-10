@@ -2,8 +2,6 @@ import streamlit as st
 from pathlib import Path
 st.set_page_config(page_title="AIHealthPro Chatbot", page_icon=":robot:",layout="centered",)
 st.image("logo.png",width=100)
-st.title("AIHealthPro Chatbot")
-st.write("AIHealthPro is a chatbot that can help you with your health questions.")
 
 import os
 import io
