@@ -21,6 +21,29 @@ def image_to_byte_array(image: Image) -> bytes:
 # Load environment variables
 load_dotenv()
 
+safety_settings = [
+    {
+        "category": "HARM_CATEGORY_DANGEROUS",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_NONE",
+    },
+    {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_NONE",
+    },
+]
+
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Set up Google Gemini-Pro AI model
@@ -80,8 +103,10 @@ if selected == "DocBot":
         st.chat_message("user").markdown(user_prompt)
 
         # Send user's message to Gemini-Pro and get the response
-        gemini_response = st.session_state.chat_session.send_message(user_prompt)
-
+        
+        gemini_response = st.session_state.chat_session.send_message(
+        user_prompt, safety_settings=safety_settings
+    )
         # Display Gemini-Pro's response
         with st.chat_message("assistant"):
             st.markdown(gemini_response.text)
@@ -119,7 +144,8 @@ elif selected == "VisionBot":
                                 )
                             )
                         ]
-                    )
+                    ),
+                    safety_settings=safety_settings
                 )
                 response.resolve()
                 st.write("")
