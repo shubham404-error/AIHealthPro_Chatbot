@@ -88,7 +88,7 @@ with st.sidebar:
 
 if selected == "DocBot":
     # Display the chatbot's title on the page
-    st.title("🧑‍⚕️ AIHealthPro-Docbot")
+    st.title("🧑‍⚕️ Docbot-AIHealthPro™")
 
     # Display the chat history
     for message in st.session_state.chat_session.history:
@@ -115,7 +115,7 @@ if selected == "DocBot":
             st.markdown(gemini_response.text)
 
 elif selected == "VisionBot":
-    st.header("👁 AIHealthPro-Visionbot")
+    st.header("👁 Visionbot-AIHealthPro™")
     st.write("")
 
     image_prompt = st.text_input("Interact with the Image", placeholder="Prompt", label_visibility="visible")
