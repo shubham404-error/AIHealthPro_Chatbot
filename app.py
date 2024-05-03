@@ -109,6 +109,7 @@ if selected == "Chat with reports (beta)":
                 pdf_text = "\n\n".join(page.extract_text() for page in pdf_reader.pages)
                 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
                 texts = text_splitter.split_text(pdf_text)
+                retriever = vectorstore.as_retriever()
                 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
                 vectorstore = Chroma.from_texts(texts, embeddings)
 
@@ -129,13 +130,13 @@ if selected == "Chat with reports (beta)":
 
         # Get user question and provide answer (use file_name as key)
         user_question = st.text_input("Ask a question about the report:")
-        if user_question:
-            try:
-                docs = st.session_state.rag_session[file_name]["vectorstore"].get_relevant_documents(user_question)
-                response = st.session_state.rag_session[file_name]["chain"]({"input_documents": docs, "question": user_question}, return_only_outputs=True)
-                st.info(response['output_text'])
-            except Exception as e:
-                st.error(f"Error generating answer: {e}")
+    if user_question:
+        try:
+            docs = retriever.get_relevant_documents(user_question)  # Use retriever here
+            response = st.session_state.rag_session[file_name]["chain"]({"input_documents": docs, "question": user_question}, return_only_outputs=True)
+            st.info(response['output_text'])
+        except Exception as e:
+            st.error(f"Error generating answer: {e}")
 
 elif selected == "DocBot":
     # Display the chatbot's title on the page
