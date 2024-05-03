@@ -4,5 +4,4 @@ streamlit==1.30.0
 pillow
 streamlit-option-menu
 langchain
-unstructured-pdf-loader
 langchain-community
