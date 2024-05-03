@@ -94,8 +94,7 @@ with st.sidebar:
         st.write("🧑‍⚕️ **DocBot** - Engage in text-based medical conversations.")
     elif selected == "VisionBot":
         st.write("👁 **VisionBot** - Analyze and interpret medical images.")
-    elif:
-        st.write('upload the reports')
+
 if selected == "Chat with reports (beta)":
     st.title("📑 Chat with Reports (Beta)")
 
