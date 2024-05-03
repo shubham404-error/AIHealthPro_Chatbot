@@ -122,20 +122,21 @@ if selected == "Chat with reports (beta)":
                 prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
                 qa_chain = load_qa_chain(ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3, api_key=GOOGLE_API_KEY), chain_type="stuff", prompt=prompt)
 
-                st.session_state.rag_session[uploaded_file.id] = {"vectorstore": vectorstore, "chain": qa_chain}
+                st.session_state.rag_session[file_name] = {"vectorstore": vectorstore, "chain": qa_chain}
                 st.success("PDF processed successfully!")
             except Exception as e:
                 st.error(f"Error processing PDF: {e}")
-        
-        # Get user question and provide answer
+
+        # Get user question and provide answer (use file_name as key)
         user_question = st.text_input("Ask a question about the report:")
         if user_question:
             try:
-                docs = st.session_state.rag_session[uploaded_file.id]["vectorstore"].get_relevant_documents(user_question)
-                response = st.session_state.rag_session[uploaded_file.id]["chain"]({"input_documents": docs, "question": user_question}, return_only_outputs=True)
-                st.info(response['output_text']) 
+                docs = st.session_state.rag_session[file_name]["vectorstore"].get_relevant_documents(user_question)
+                response = st.session_state.rag_session[file_name]["chain"]({"input_documents": docs, "question": user_question}, return_only_outputs=True)
+                st.info(response['output_text'])
             except Exception as e:
                 st.error(f"Error generating answer: {e}")
+
 elif selected == "DocBot":
     # Display the chatbot's title on the page
     st.title("🧑‍⚕️ Docbot-AIHealthPro™")
