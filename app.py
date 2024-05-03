@@ -11,12 +11,12 @@ import google.generativeai as gen_ai
 import google.ai.generativelanguage as glm
 from PIL import Image
 from streamlit_option_menu import option_menu
-from langchain.document_loaders import UnstructuredPDFLoader
-from langchain.indexes import VectorstoreIndexCreator
-from langchain.retrievers import Document
-from langchain.chains import RetrievalQA
-from langchain.llms import GoogleGeminiLLMModel
 from langchain.prompts import PromptTemplate
+from langchain.chains.question_answering import load_qa_chain
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import Chroma
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+import PyPDF2
 
 def image_to_byte_array(image: Image) -> bytes:
     imgByteArr = io.BytesIO()
@@ -56,17 +56,20 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-pro')
 
-# Function to translate roles between Gemini-Pro and Streamlit terminology
+# Function to translate roles for Streamlit
 def translate_role_for_streamlit(user_role):
     if user_role == "model":
         return "assistant"
     else:
         return user_role
 
-# Initialize chat session in Streamlit if not already present
+# Initialize chat sessions (one for each functionality)
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
+if "rag_session" not in st.session_state:
+    st.session_state.rag_session = {}  # Store PDF data and QA chain per session
 
+# Sidebar navigation
 with st.sidebar:
     selected = option_menu(
         menu_title="AIHealthPro Chatbot",
@@ -91,8 +94,49 @@ with st.sidebar:
         st.write("🧑‍⚕️ **DocBot** - Engage in text-based medical conversations.")
     elif selected == "VisionBot":
         st.write("👁 **VisionBot** - Analyze and interpret medical images.")
+    elif:
+        st.write('upload the reports')
+if selected == "Chat with reports (beta)":
+    st.title("📑 Chat with Reports (Beta)")
 
-if selected == "DocBot":
+    uploaded_file = st.file_uploader("Upload a PDF report", type=["pdf"])
+
+    if uploaded_file is not None:
+        # Process PDF if not already processed in this session
+        if uploaded_file.id not in st.session_state.rag_session:
+            try:
+                pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
+                pdf_text = "\n\n".join(page.extract_text() for page in pdf_reader.pages)
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                texts = text_splitter.split_text(pdf_text)
+                embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+                vectorstore = Chroma.from_texts(texts, embeddings)
+
+                # Define prompt template and QA chain
+                prompt_template = """Use the following context to answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+                
+                Context: {context}
+                
+                Question: {question}
+                """
+                prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
+                qa_chain = load_qa_chain(ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3, api_key=GOOGLE_API_KEY), chain_type="stuff", prompt=prompt)
+
+                st.session_state.rag_session[uploaded_file.id] = {"vectorstore": vectorstore, "chain": qa_chain}
+                st.success("PDF processed successfully!")
+            except Exception as e:
+                st.error(f"Error processing PDF: {e}")
+        
+        # Get user question and provide answer
+        user_question = st.text_input("Ask a question about the report:")
+        if user_question:
+            try:
+                docs = st.session_state.rag_session[uploaded_file.id]["vectorstore"].get_relevant_documents(user_question)
+                response = st.session_state.rag_session[uploaded_file.id]["chain"]({"input_documents": docs, "question": user_question}, return_only_outputs=True)
+                st.info(response['output_text']) 
+            except Exception as e:
+                st.error(f"Error generating answer: {e}")
+elif selected == "DocBot":
     # Display the chatbot's title on the page
     st.title("🧑‍⚕️ Docbot-AIHealthPro™")
 
