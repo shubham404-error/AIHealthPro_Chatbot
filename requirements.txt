@@ -6,3 +6,4 @@ streamlit-option-menu
 langchain
 chromadb
 PyPDF2
+langchain-google-genai
