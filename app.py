@@ -11,6 +11,12 @@ import google.generativeai as gen_ai
 import google.ai.generativelanguage as glm
 from PIL import Image
 from streamlit_option_menu import option_menu
+from langchain.document_loaders import UnstructuredPDFLoader
+from langchain.indexes import VectorstoreIndexCreator
+from langchain.retrievers import Document
+from langchain.chains import RetrievalQA
+from langchain.llms import GoogleGeminiLLMModel
+from langchain.prompts import PromptTemplate
 
 def image_to_byte_array(image: Image) -> bytes:
     imgByteArr = io.BytesIO()
@@ -64,8 +70,8 @@ if "chat_session" not in st.session_state:
 with st.sidebar:
     selected = option_menu(
         menu_title="AIHealthPro Chatbot",
-        options=["DocBot", "VisionBot"],
-        icons=["robot", "eye"],
+        options=["DocBot", "VisionBot", "Chat with reports (beta)"],
+        icons=["robot", "eye", "file-text"],
         default_index=0,
         orientation="vertical",
     )
@@ -113,6 +119,45 @@ if selected == "DocBot":
         # Display Gemini-Pro's response
         with st.chat_message("assistant"):
             st.markdown(gemini_response.text)
+
+elif selected == "Chat with reports (beta)":
+    st.header("🗄️ Chat with reports (beta)")
+
+    # Load PDF reports
+    pdf_files = st.file_uploader("Upload PDF reports", type="pdf", accept_multiple_files=True)
+
+    if pdf_files:
+        # Create an index from the PDF files
+        pdf_loader = UnstructuredPDFLoader(pdf_files)
+        index = VectorstoreIndexCreator().from_loaders([pdf_loader])
+
+        # Set up the RAG model
+        model = GoogleGeminiLLMModel()
+        retriever = index.vectorstore.as_retriever()
+        qa = RetrievalQA.from_chain_type(
+            llm=model,
+            chain_type="stuff",
+            retriever=retriever,
+            return_source_documents=True,
+        )
+
+        # Define the prompt template
+        prompt_template = """
+        Use the following context from the reports to answer the question:
+
+        Context: {context}
+
+        Question: {question}
+        Answer:
+        """
+        prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
+
+        # Get user input
+        user_query = st.text_input("Ask a question about the reports")
+
+        if user_query:
+            result = qa({"query": user_query}, prompt=prompt)
+            st.write(result["result"])
 
 elif selected == "VisionBot":
     st.header("👁 Visionbot-AIHealthPro™")
