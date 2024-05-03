@@ -103,6 +103,7 @@ if selected == "Chat with reports (beta)":
     if uploaded_file is not None:
     # Use uploaded_file.name as the key for session state
     file_name = uploaded_file.name
+
     if file_name not in st.session_state.rag_session:
         try:
             pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
@@ -113,25 +114,28 @@ if selected == "Chat with reports (beta)":
             vectorstore = Chroma.from_texts(texts, embeddings)  # vectorstore defined here
 
             # Create a retriever from the Chroma vectorstore
-            retriever = vectorstore.as_retriever()  
+            retriever = vectorstore.as_retriever()
 
             # Define prompt template and QA chain (no changes here) ...
 
             # Store retriever and vectorstore in session state
             st.session_state.rag_session[file_name] = {"vectorstore": vectorstore, "chain": qa_chain, "retriever": retriever}
             st.success("PDF processed successfully!")
+
         except Exception as e:
             st.error(f"Error processing PDF: {e}")
-        # Get user question and provide answer (use file_name as key)
-        user_question = st.text_input("Ask a question about the report:")
-        if user_question:
-            try:
-                docs = retriever.get_relevant_documents(user_question)  # Use retriever here
-                response = st.session_state.rag_session[file_name]["chain"]({"input_documents": docs, "question": user_question}, return_only_outputs=True)
-                st.info(response['output_text'])
-            except Exception as e:
-                st.error(f"Error generating answer: {e}")
-            
+
+    # Get user question and provide answer (use file_name as key)
+    user_question = st.text_input("Ask a question about the report:")
+
+    if user_question:
+        try:
+            docs = retriever.get_relevant_documents(user_question)  # Use retriever here
+            response = st.session_state.rag_session[file_name]["chain"]({"input_documents": docs, "question": user_question}, return_only_outputs=True)
+            st.info(response['output_text'])
+
+        except Exception as e:
+            st.error(f"Error generating answer: {e}")
             
 elif selected == "DocBot":
     # Display the chatbot's title on the page
