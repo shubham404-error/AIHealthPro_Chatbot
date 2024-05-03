@@ -101,8 +101,9 @@ if selected == "Chat with reports (beta)":
     uploaded_file = st.file_uploader("Upload a PDF report", type=["pdf"])
 
     if uploaded_file is not None:
-        # Process PDF if not already processed in this session
-        if uploaded_file.id not in st.session_state.rag_session:
+        # Use uploaded_file.name as the key for session state
+        file_name = uploaded_file.name
+        if file_name not in st.session_state.rag_session:
             try:
                 pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
                 pdf_text = "\n\n".join(page.extract_text() for page in pdf_reader.pages)
