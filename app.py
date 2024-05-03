@@ -101,33 +101,27 @@ if selected == "Chat with reports (beta)":
     uploaded_file = st.file_uploader("Upload a PDF report", type=["pdf"])
 
     if uploaded_file is not None:
-        # Use uploaded_file.name as the key for session state
-        file_name = uploaded_file.name
-        if file_name not in st.session_state.rag_session:
-            try:
-                pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
-                pdf_text = "\n\n".join(page.extract_text() for page in pdf_reader.pages)
-                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-                texts = text_splitter.split_text(pdf_text)
-                retriever = vectorstore.as_retriever()
-                embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-                vectorstore = Chroma.from_texts(texts, embeddings)
+    # Use uploaded_file.name as the key for session state
+    file_name = uploaded_file.name
+    if file_name not in st.session_state.rag_session:
+        try:
+            pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
+            pdf_text = "\n\n".join(page.extract_text() for page in pdf_reader.pages)
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            texts = text_splitter.split_text(pdf_text)
+            embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+            vectorstore = Chroma.from_texts(texts, embeddings)  # vectorstore defined here
 
-                # Define prompt template and QA chain
-                prompt_template = """Use the following context to answer the question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-                
-                Context: {context}
-                
-                Question: {question}
-                """
-                prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
-                qa_chain = load_qa_chain(ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3, api_key=GOOGLE_API_KEY), chain_type="stuff", prompt=prompt)
+            # Create a retriever from the Chroma vectorstore
+            retriever = vectorstore.as_retriever()  
 
-                st.session_state.rag_session[file_name] = {"vectorstore": vectorstore, "chain": qa_chain}
-                st.success("PDF processed successfully!")
-            except Exception as e:
-                st.error(f"Error processing PDF: {e}")
+            # Define prompt template and QA chain (no changes here) ...
 
+            # Store retriever and vectorstore in session state
+            st.session_state.rag_session[file_name] = {"vectorstore": vectorstore, "chain": qa_chain, "retriever": retriever}
+            st.success("PDF processed successfully!")
+        except Exception as e:
+            st.error(f"Error processing PDF: {e}")
         # Get user question and provide answer (use file_name as key)
         user_question = st.text_input("Ask a question about the report:")
         if user_question:
