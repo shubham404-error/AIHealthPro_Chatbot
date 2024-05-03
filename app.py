@@ -99,31 +99,29 @@ if selected == "Chat with reports (beta)":
     st.title("📑 Chat with Reports (Beta)")
 
     uploaded_file = st.file_uploader("Upload a PDF report", type=["pdf"])
-
     if uploaded_file is not None:
-    # Use uploaded_file.name as the key for session state
-    file_name = uploaded_file.name
-
-    if file_name not in st.session_state.rag_session:
-        try:
-            pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
-            pdf_text = "\n\n".join(page.extract_text() for page in pdf_reader.pages)
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-            texts = text_splitter.split_text(pdf_text)
-            embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-            vectorstore = Chroma.from_texts(texts, embeddings)  # vectorstore defined here
-
-            # Create a retriever from the Chroma vectorstore
-            retriever = vectorstore.as_retriever()
-
-            # Define prompt template and QA chain (no changes here) ...
-
-            # Store retriever and vectorstore in session state
-            st.session_state.rag_session[file_name] = {"vectorstore": vectorstore, "chain": qa_chain, "retriever": retriever}
-            st.success("PDF processed successfully!")
-
-        except Exception as e:
-            st.error(f"Error processing PDF: {e}")
+        file_name = uploaded_file.name
+    
+        if file_name not in st.session_state.rag_session:
+            try:
+                pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
+                pdf_text = "\n\n".join(page.extract_text() for page in pdf_reader.pages)
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                texts = text_splitter.split_text(pdf_text)
+                embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+                vectorstore = Chroma.from_texts(texts, embeddings)  # vectorstore defined here
+    
+                # Create a retriever from the Chroma vectorstore
+                retriever = vectorstore.as_retriever()
+    
+                # Define prompt template and QA chain (no changes here) ...
+    
+                # Store retriever and vectorstore in session state
+                st.session_state.rag_session[file_name] = {"vectorstore": vectorstore, "chain": qa_chain, "retriever": retriever}
+                st.success("PDF processed successfully!")
+    
+            except Exception as e:
+                st.error(f"Error processing PDF: {e}")
 
     # Get user question and provide answer (use file_name as key)
     user_question = st.text_input("Ask a question about the report:")
@@ -136,6 +134,7 @@ if selected == "Chat with reports (beta)":
 
         except Exception as e:
             st.error(f"Error generating answer: {e}")
+
             
 elif selected == "DocBot":
     # Display the chatbot's title on the page
