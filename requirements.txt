@@ -7,3 +7,4 @@ langchain
 chromadb==0.3.29
 PyPDF2
 langchain-google-genai
+pysqlite3-binary
