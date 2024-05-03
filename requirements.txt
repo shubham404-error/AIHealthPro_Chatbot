@@ -7,3 +7,4 @@ langchain
 chromadb
 PyPDF2
 langchain-google-genai
+sqlite3==3.35.0
