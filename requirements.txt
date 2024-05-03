@@ -4,7 +4,6 @@ streamlit==1.30.0
 pillow
 streamlit-option-menu
 langchain
-chromadb
+chromadb==0.3.29
 PyPDF2
 langchain-google-genai
-sqlite3==3.35.0
